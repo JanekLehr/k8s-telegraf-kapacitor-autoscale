@@ -1,0 +1,53 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: janeklehr/alert-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8080
+          - containerPort: 8000
+          env:
+            - name: "APP_DEPLOYMENT"
+              value: "app"
+        - name: telegraf
+          image: telegraf:latest
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+          - name: app-config-volume
+            mountPath: /etc/telegraf
+      volumes:
+        - name: app-config-volume
+          configMap:
+            name: telegraf-app-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  annotations:
+      prometheus.io/scrape: 'true'
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30100
+      name: app-port
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30200
+      name: mertrics-port
+  selector:
+    app: app
+  type: NodePort

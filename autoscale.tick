@@ -1,0 +1,49 @@
+// Target is the desired number of requests per second per host.
+var target = 100.0
+
+// Only one increase event will be triggered per increase_cooldown.
+var increase_cooldown = 1m
+
+// Only one decrease event will be triggered per decrease_cooldown
+var decrease_cooldown = 2m
+
+// Moving_avg_count is the number of points to use in a moving average
+// as input to the k8sAutoscale node.
+// Points arrive at one per second.
+var moving_avg_count = 60
+
+// Scale each deployment that is reporting is request counts to Kapacitor.
+stream
+    |from()
+        .measurement('requests')
+        .groupBy('host', 'deployment')
+        // we get points every second so drop any noise on the data
+        .truncate(1s)
+    // Compute the rate of requests per second per host, keeping in mind that
+    // we are receiving data from telegraf once every 10s
+    |derivative('counter')
+        .as('requests_per_second')
+        .unit(1s)
+        .nonNegative()
+    // Compute the total_requests_per_second per deployment across all hosts
+    |groupBy('deployment')
+    |sum('requests_per_second')
+        .as('total_requests_per_second')
+    // Compute the moving average of the total_requests_per_second per deployment
+    |movingAverage('total_requests_per_second', moving_avg_count)
+        .as('avg_requests_per_second')
+    // Using the avg_requests_per_second autoscale each deployment.
+    |k8sAutoscale()
+        // We are scaling a deployment.
+        .kind('deployments')
+        // The name of the deployment to scale is found in the 'deployment' tag.
+        .resourceNameTag('deployment')
+        // Set the cool down timer values.
+        .increaseCooldown(increase_cooldown)
+        .decreaseCooldown(decrease_cooldown)
+        // Set the max and min scaling boundaries
+        .min(1)
+        .max(10)
+        // Compute the desired number of replicas based on the
+        // avg_requests_per_second and target values.
+        .replicas(lambda: int(ceil("avg_requests_per_second" / target)))
