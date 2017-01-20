@@ -1,7 +1,7 @@
 # Telegraf + Kapacitor + Kubernetes Autoscaling
 This repository provides an example of how you can use [Kapacitor](https://www.influxdata.com/time-series-platform/kapacitor/) and 
 [Telegraf](https://github.com/influxdata/telegraf) to autoscale resources in Kubernetes, using custom metrics, while still implementing Prometheus-style metric endpoints. 
-This is due to the limitation with the existing [Horizontal Pod Autscaler](https://kubernetes.io/docs/user-guide/horizontal-pod-autoscaling/) that only supports scaling on CPU and memory metrics.
+This is due to the limitation with the existing [Horizontal Pod Autoscaler](https://kubernetes.io/docs/user-guide/horizontal-pod-autoscaling/) that only supports scaling on CPU and memory metrics.
 
 Telegraf is used to scrape the Prometheus-style metrics endpoints and relays them to Kapacitor, which implements the autoscaling functionality.
 
