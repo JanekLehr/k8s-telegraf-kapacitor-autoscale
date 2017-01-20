@@ -235,10 +235,11 @@ is sending us a metric every second. It's very important that the derivative uni
 accurate computation of requests/s. An alternate TICK script that accomplishes the same thing can be found in the 
 [k8s_autoscale_node doc](https://docs.influxdata.com/kapacitor/v1.1/nodes/k8s_autoscale_node/)
 
-- **TODO:** I found that when the node exporter is deployed with `hostNetwork: true` then Telgraf is unable to discover the Kapacitor endpoint using 
-Kubernetes' service discovery. Commenting this piece out fixed this problem only for the pods deployed on the non-k8-master node. I'm not 
+- **TODO:** We found that when the node exporter is deployed with `hostNetwork: true` then Telgraf is unable to discover the Kapacitor endpoint using 
+Kubernetes' service discovery. Commenting this piece out fixed this problem only for the pods deployed on the non-k8-master node. We're not 
 sure yet if this is due to this particular Kubernetes cluster configuration or if it's a general limitation.
 
-- **TODO:** I found that the total requests per second calculation isn't what you would expect after another Pod is added. My theory is that it has 
+- **TODO:** We found that the total requests per second calculation isn't what you would expect after another Pod is added. Our theory is that it has 
 something to do with the way the Telegraf config and Kapacitor TICK stack work together. It needs more investigation. Something to try when debugging 
-this issue is having the app send directly to Kapacitor, like the [original Influx version](https://github.com/influxdata/k8s-kapacitor-autoscale) of this repo does, and see if this weird behavior continues.
+this issue is having the app send directly to Kapacitor, like the [original Influx version](https://github.com/influxdata/k8s-kapacitor-autoscale) of 
+this repo does, and see if this weird behavior continues.
